@@ -9,10 +9,10 @@
 int main()
 {
     //读入图像, 并预处理
-    cv::Mat src = cv::imread("../dstPatterns/8.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/8.jpg",0);
 
     int resizeLength = 400;
-    cv::resize(src,src,cv::Size(resizeLength,resizeLength*src.rows/(float)src.cols));
+    cv::resize(src,src,cv::Size(resizeLength,resizeLength*src.rows/src.cols));
 
     cv::threshold(src, src, 0, 255, CV_THRESH_OTSU);
     //if(src.at<uchar>(src.rows/2,src.cols/2) == 0)
@@ -54,13 +54,13 @@ int main()
 */
 
     //读入单元块并提取单元块的CornerPoint
-    cv::Mat units = cv::imread("../unitPatterns/units.jpg",0);
+    cv::Mat units = cv::imread("../T_puzzle/unitPatterns/units.jpg",0);
     float ratio = sqrt(cv::countNonZero(src)/(float)cv::countNonZero(units));
     int unitSize = 4;
     std::vector<std::vector<CornerPoint>> unitCornerPoints;
     for (unsigned int i=1; i<=unitSize; i++)
     {
-        std::string file = "../unitPatterns/" + std::to_string(i) + ".jpg";
+        std::string file = "../T_puzzle/unitPatterns/" + std::to_string(i) + ".jpg";
         cv::Mat unit = cv::imread(file,0);
         cv::threshold(unit,unit,127,255,CV_THRESH_BINARY);
 
