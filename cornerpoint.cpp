@@ -91,13 +91,35 @@ cv::Point getRVec(cv::Point vec1, cv::Point vec2, cv::Point vec3)
     return nextVec;
 }
 
-void cutPattern(const cv::Mat &pattern, std::vector<cv::Point> pts, cv::Mat &nextPattern)
+bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point> &pts, cv::Mat &nextPattern)
 {
     std::vector<std::vector<cv::Point>> contour;
     contour.push_back(pts);
     
+    cv::Mat tmpImg(pattern.size(),CV_8U,cv::Scalar(1));
+    cv::drawContours(tmpImg, contour, 0, 255, -1);
+    
+    cv::imshow("pattern",pattern);
+    cv::imshow("tmpImg",tmpImg);
+    
+    cv::Mat tmpImg2 = (tmpImg == pattern);
+    
+    tmpImg = (tmpImg != cv::Mat(tmpImg.size(),CV_8U,cv::Scalar(1)));
+    
+    cv::imshow("tmpImg2",tmpImg2);
+    //cv::waitKey();
+    
+    float ratio = cv::countNonZero(tmpImg2) / (float)cv::countNonZero(tmpImg);
+    
+    std::cout<<"ratio="<<ratio<<std::endl;
+
+    if(ratio < 0.95)
+        return false;
+    
     pattern.copyTo(nextPattern);
     cv::drawContours(nextPattern, contour, 0, 0, -1);
+    
+    return true;
 }
 
 bool fit(const cv::Size &imgSize, 
@@ -232,7 +254,9 @@ bool fit(const cv::Size &imgSize,
                                 continue;
 
                             cv::Mat nextPattern;
-                            cutPattern(dstPattern,pts,nextPattern);
+                            bool outOfRangeJudge = cutPattern(dstPattern,pts,nextPattern);
+                            if(outOfRangeJudge == false)
+                                continue;
                             
                             resultUnitPos[j].assign(pts.begin(),pts.end());
                             
@@ -253,14 +277,15 @@ bool fit(const cv::Size &imgSize,
                             int sum=0;
                             for(int a=0;a<unitSize;a++)
                                 sum += nextIsUsed[a];
-                            //std::cout<<"used="<<sum<<std::endl;
+                            std::cout<<"used="<<sum<<std::endl;
                             
                             //test
-                            //cv::namedWindow("nextPattern",0);
-                            //cv::imshow("nextPattern",nextPattern);
-                            //if(cv::waitKey(1) == 27)
-                            //    exit(0);
-                            
+                            std::cout<<"originDst/nextPattern:"<<cv::countNonZero(originDst)/cv::countNonZero(nextPattern)<<std::endl;
+                            cv::namedWindow("nextPattern",0);
+                            cv::imshow("nextPattern",nextPattern);
+                            if(cv::waitKey(1) == 27)
+                                exit(0);
+
                             if(sum == unitSize && cv::countNonZero(originDst)/cv::countNonZero(nextPattern) > 10 )
                                 return true;
                             

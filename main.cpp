@@ -79,10 +79,12 @@ int main()
         unitCornerPoints.push_back(unitCornerPoint);
     }
 
+    //匹配角点
     std::vector<bool> isReversed(unitSize,false);
     std::vector<bool> isUsed(unitSize,false);
     std::vector<std::vector<cv::Point>> resultUnitPos(unitSize);
-    fit(src.size(), src, dstCornerPoints, unitCornerPoints, isUsed, unitSize, isReversed, resultUnitPos);
+    bool fitted = fit(src.size(), src, dstCornerPoints, unitCornerPoints, isUsed, unitSize, isReversed, resultUnitPos);
+    std::cout<<"fitted:"<<fitted<<std::endl;
     
     //time
     runTime = ((double)cv::getTickCount() - runTime) / cv::getTickFrequency();
