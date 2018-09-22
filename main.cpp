@@ -6,15 +6,17 @@
 #include "dstpatternfinder.h"
 #include "cornerpoint.h"
 
+bool solve_Tpuzzle(const cv::Mat &src, const cv::Mat &units);
+
 int main()
 {
     //time
     double runTime = (double)cv::getTickCount();
     
     //读入图像, 并预处理
-    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/10.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/2.jpg",0);
 
-    int resizeLength = 400;
+    int resizeLength = 200;
     cv::resize(src,src,cv::Size(resizeLength,resizeLength*src.rows/src.cols));
 
     cv::threshold(src, src, 0, 255, CV_THRESH_OTSU);
@@ -101,6 +103,10 @@ int main()
     return 0;
 }
 
+bool solve_Tpuzzle(const cv::Mat &src, const cv::Mat &units)
+{
+    
+}
 
 
 

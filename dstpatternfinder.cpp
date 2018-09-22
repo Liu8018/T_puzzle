@@ -16,7 +16,7 @@ int dstPatternFinder::getCorners(std::vector<cv::Point> &cornerPoints)
 
     //多边形拟合
     std::vector<cv::Point> approx_points;
-    cv::approxPolyDP(*contours.begin(), approx_points, 7, 1);
+    cv::approxPolyDP(*contours.begin(), approx_points, 5, 1);
 
     //test
     /*cv::Mat findContoursTestImg(m_img.size(), CV_8UC3, cv::Scalar(255,255,255));
@@ -30,7 +30,8 @@ int dstPatternFinder::getCorners(std::vector<cv::Point> &cornerPoints)
         cv::putText(approxTestImg, std::to_string(order++), c, 1, 1, cv::Scalar(30,30,250), 1);
     }
     cv::namedWindow("approxTestImg",0);
-    cv::imshow("approxTestImg",approxTestImg);*/
+    cv::imshow("approxTestImg",approxTestImg);
+    cv::waitKey();*/
 
     //返回
     cornerPoints.assign(approx_points.begin(),approx_points.end());

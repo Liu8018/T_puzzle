@@ -99,21 +99,21 @@ bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point> &pts, cv::M
     cv::Mat tmpImg(pattern.size(),CV_8U,cv::Scalar(1));
     cv::drawContours(tmpImg, contour, 0, 255, -1);
     
-    cv::imshow("pattern",pattern);
-    cv::imshow("tmpImg",tmpImg);
+    //cv::imshow("pattern",pattern);
+    //cv::imshow("tmpImg",tmpImg);
     
     cv::Mat tmpImg2 = (tmpImg == pattern);
     
     tmpImg = (tmpImg != cv::Mat(tmpImg.size(),CV_8U,cv::Scalar(1)));
     
-    cv::imshow("tmpImg2",tmpImg2);
+    //cv::imshow("tmpImg2",tmpImg2);
     //cv::waitKey();
     
     float ratio = cv::countNonZero(tmpImg2) / (float)cv::countNonZero(tmpImg);
     
-    std::cout<<"ratio="<<ratio<<std::endl;
+    //std::cout<<"ratio="<<ratio<<std::endl;
 
-    if(ratio < 0.95)
+    if(ratio < 0.96)
         return false;
     
     pattern.copyTo(nextPattern);
@@ -277,16 +277,16 @@ bool fit(const cv::Size &imgSize,
                             int sum=0;
                             for(int a=0;a<unitSize;a++)
                                 sum += nextIsUsed[a];
-                            std::cout<<"used="<<sum<<std::endl;
                             
                             //test
-                            std::cout<<"originDst/nextPattern:"<<cv::countNonZero(originDst)/cv::countNonZero(nextPattern)<<std::endl;
-                            cv::namedWindow("nextPattern",0);
-                            cv::imshow("nextPattern",nextPattern);
-                            if(cv::waitKey(1) == 27)
-                                exit(0);
+                            //std::cout<<"used="<<sum<<std::endl;
+                            //std::cout<<"originDst/nextPattern:"<<cv::countNonZero(originDst)/cv::countNonZero(nextPattern)<<std::endl;
+                            //cv::namedWindow("nextPattern",0);
+                            //cv::imshow("nextPattern",nextPattern);
+                            //if(cv::waitKey(1) == 27)
+                            //    exit(0);
 
-                            if(sum == unitSize && cv::countNonZero(originDst)/cv::countNonZero(nextPattern) > 10 )
+                            if(sum == unitSize && cv::countNonZero(originDst)/cv::countNonZero(nextPattern) > 8 )
                                 return true;
                             
                             bool finalJudge = fit(dstPattern.size(), originDst, nextDstCornerPoints,unitCornerPoints,nextIsUsed,unitSize,isReversed, resultUnitPos);
