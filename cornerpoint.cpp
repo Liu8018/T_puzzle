@@ -108,15 +108,7 @@ void fit(cv::Size imgSize,
          std::vector<bool> isUsed, 
          int unitSize,
          std::vector<bool> &isReversed)
-{
-    //若单元块被全部使用，则终止递归
-    int sum=0;
-    for(int a=0;a<unitSize;a++)
-        sum += isUsed[a];
-std::cout<<"used="<<sum<<std::endl;
-    if(sum == unitSize)
-        return;
-    
+{   
     //绘制目标图案
     std::vector<cv::Point> dstContour;
     for(unsigned int i=0;i<dstCornerPoints.size();i++)
@@ -254,6 +246,19 @@ std::cout<<"used="<<sum<<std::endl;
                             
                             std::vector<CornerPoint> nextDstCornerPoints;
                             cornerPointTransf(nextDstPoints, nextDstCornerPoints);
+                            
+                            //若单元块被全部使用，则终止递归
+                            int sum=0;
+                            for(int a=0;a<unitSize;a++)
+                                sum += nextIsUsed[a];
+                            std::cout<<"used="<<sum<<std::endl;
+                            
+                            if(sum == unitSize)
+                            {
+                                
+                                
+                                return;
+                            }
                             
                             //test
                             cv::namedWindow("nextPattern",0);

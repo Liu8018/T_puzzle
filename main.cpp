@@ -9,7 +9,7 @@
 int main()
 {
     //读入图像, 并预处理
-    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/8.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/10.jpg",0);
 
     int resizeLength = 400;
     cv::resize(src,src,cv::Size(resizeLength,resizeLength*src.rows/src.cols));
@@ -79,8 +79,6 @@ int main()
     std::vector<bool> isReversed(unitSize,false);
     std::vector<bool> isUsed(unitSize,false);
     fit(src.size(),dstCornerPoints, unitCornerPoints, isUsed, unitSize, isReversed);
-
-
 
     return 0;
 }
