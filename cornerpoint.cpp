@@ -98,16 +98,16 @@ void cutPattern(const cv::Mat &pattern, std::vector<cv::Point> pts, cv::Mat &nex
     
     pattern.copyTo(nextPattern);
     cv::drawContours(nextPattern, contour, 0, 0, -1);
-    
-    //cv::morphologyEx(nextPattern,nextPattern,cv::MORPH_OPEN,cv::Mat(3,3,CV_8U,1));
 }
 
-void fit(cv::Size imgSize,
+bool fit(const cv::Size &imgSize, 
+         const cv::Mat &originDst,
          std::vector<CornerPoint> dstCornerPoints,
          std::vector<std::vector<CornerPoint>> unitCornerPoints,
          std::vector<bool> isUsed, 
          int unitSize,
-         std::vector<bool> &isReversed)
+         std::vector<bool> &isReversed, 
+         std::vector<std::vector<cv::Point> > &resultUnitPos)
 {   
     //绘制目标图案
     std::vector<cv::Point> dstContour;
@@ -234,6 +234,8 @@ void fit(cv::Size imgSize,
                             cv::Mat nextPattern;
                             cutPattern(dstPattern,pts,nextPattern);
                             
+                            resultUnitPos[j].assign(pts.begin(),pts.end());
+                            
                             dstPatternFinder finder(nextPattern);
                             std::vector<cv::Point> nextDstPoints;
                             int judge = finder.getCorners(nextDstPoints);
@@ -251,22 +253,20 @@ void fit(cv::Size imgSize,
                             int sum=0;
                             for(int a=0;a<unitSize;a++)
                                 sum += nextIsUsed[a];
-                            std::cout<<"used="<<sum<<std::endl;
-                            
-                            if(sum == unitSize)
-                            {
-                                
-                                
-                                return;
-                            }
+                            //std::cout<<"used="<<sum<<std::endl;
                             
                             //test
-                            cv::namedWindow("nextPattern",0);
-                            cv::imshow("nextPattern",nextPattern);
-                            if(cv::waitKey() == 27)
-                                exit(0);
+                            //cv::namedWindow("nextPattern",0);
+                            //cv::imshow("nextPattern",nextPattern);
+                            //if(cv::waitKey(1) == 27)
+                            //    exit(0);
                             
-                            fit(dstPattern.size(),nextDstCornerPoints,unitCornerPoints,nextIsUsed,unitSize,isReversed);
+                            if(sum == unitSize && cv::countNonZero(originDst)/cv::countNonZero(nextPattern) > 10 )
+                                return true;
+                            
+                            bool finalJudge = fit(dstPattern.size(), originDst, nextDstCornerPoints,unitCornerPoints,nextIsUsed,unitSize,isReversed, resultUnitPos);
+                            if(finalJudge == true)
+                                return true;
                         }
     
                     }
@@ -274,4 +274,6 @@ void fit(cv::Size imgSize,
             }
         }
     }
+    
+    return false;
 }

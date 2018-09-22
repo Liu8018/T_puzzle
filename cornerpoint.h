@@ -28,11 +28,13 @@ private:
 
 void cornerPointTransf(const std::vector<cv::Point> &approxPoints, std::vector<CornerPoint> &cornerPoints);
 
-void fit(cv::Size imgSize,
+bool fit(const cv::Size &imgSize,
+         const cv::Mat &originDst,
          std::vector<CornerPoint> dstCornerPoints,
          std::vector<std::vector<CornerPoint>> unitCornerPoints,
          std::vector<bool> isUsed, 
          int unitSize, 
-         std::vector<bool> &isReversed);
+         std::vector<bool> &isReversed,
+         std::vector<std::vector<cv::Point>> &resultUnitPos);
 
 #endif // CORNERPOINT_H

@@ -8,6 +8,9 @@
 
 int main()
 {
+    //time
+    double runTime = (double)cv::getTickCount();
+    
     //读入图像, 并预处理
     cv::Mat src = cv::imread("../T_puzzle/dstPatterns/10.jpg",0);
 
@@ -78,7 +81,20 @@ int main()
 
     std::vector<bool> isReversed(unitSize,false);
     std::vector<bool> isUsed(unitSize,false);
-    fit(src.size(),dstCornerPoints, unitCornerPoints, isUsed, unitSize, isReversed);
+    std::vector<std::vector<cv::Point>> resultUnitPos(unitSize);
+    fit(src.size(), src, dstCornerPoints, unitCornerPoints, isUsed, unitSize, isReversed, resultUnitPos);
+    
+    //time
+    runTime = ((double)cv::getTickCount() - runTime) / cv::getTickFrequency();
+    std::cout << runTime << std::endl;
+    
+    cv::Mat resultTestImg;
+    src.copyTo(resultTestImg);
+    cv::cvtColor(resultTestImg,resultTestImg,cv::COLOR_GRAY2BGR);
+    cv::drawContours(resultTestImg,resultUnitPos,-1,cv::Scalar(255,0,0));
+    
+    cv::imshow("resultTestImg",resultTestImg);
+    cv::waitKey();
 
     return 0;
 }
