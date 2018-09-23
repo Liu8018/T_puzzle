@@ -7,6 +7,7 @@
 #include "cornerpoint.h"
 
 void preprocess(const cv::Mat &src, cv::Mat &result);
+void myThreshold(const cv::Mat &src, cv::Mat &result);
 void rotate(const cv::Mat &src, cv::Mat &result, int angle);
 bool solve_Tpuzzle(const cv::Mat &srcPic, const cv::Mat &unitsPic, std::vector<bool> &isReversed, std::vector<std::vector<cv::Point>> &resultUnitPos);
 
@@ -16,14 +17,17 @@ int main()
     double runTime = (double)cv::getTickCount();
     
     //读入目标图案, 并预处理
-    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/10.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/6.jpg",0);
 
     cv::Mat src_pre;
     preprocess(src,src_pre);
+    
+    //cv::imshow("src_pre",src_pre);
+    //cv::waitKey();
 
     //读入单元块图像
     cv::Mat units = cv::imread("../T_puzzle/unitPatterns/units.jpg",0);
-    cv::threshold(units, units, 0, 255, CV_THRESH_OTSU);
+    myThreshold(units,units);
     
     //求解
     std::vector<bool> isReversed;
@@ -40,13 +44,11 @@ int main()
         else
         {
             cv::Mat tmpImg;
-            cv::threshold(src,tmpImg,0,255,CV_THRESH_OTSU);
-            cv::threshold(tmpImg,tmpImg,127,255,CV_THRESH_BINARY_INV);
+            myThreshold(src,tmpImg);
             rotate(tmpImg,tmpImg,10*turns);
-            cv::threshold(tmpImg,tmpImg,127,255,CV_THRESH_BINARY_INV);
             preprocess(tmpImg,src_pre);
             
-            cv::imshow("src_pre",src_pre);
+            //cv::imshow("src_pre",src_pre);
             //cv::waitKey();
         }
     }
@@ -62,7 +64,8 @@ int main()
     cv::drawContours(resultTestImg,resultUnitPos,-1,cv::Scalar(255,0,0));
     
     cv::imshow("resultTestImg",resultTestImg);
-    cv::waitKey();
+    if(cv::waitKey() == 's')
+        cv::imwrite("result.jpg",resultTestImg);
 
     return 0;
 }
@@ -72,9 +75,18 @@ void preprocess(const cv::Mat &src, cv::Mat &result)
     int resizeLength = 200;
     cv::resize(src,result,cv::Size(resizeLength,resizeLength*src.rows/src.cols));
 
-    cv::threshold(result, result, 0, 255, CV_THRESH_OTSU);
-    //if(src.at<uchar>(src.rows/2,src.cols/2) == 0)
-    if(cv::countNonZero(result) > result.rows*result.cols/2)
+    myThreshold(result,result);
+}
+
+void myThreshold(const cv::Mat &src, cv::Mat &result)
+{
+    cv::threshold(src, result, 0, 255, CV_THRESH_OTSU);
+    
+    if((int)result.at<uchar>(0,0)
+       +(int)result.at<uchar>(0,result.cols-1)
+       +(int)result.at<uchar>(result.rows-1,0)
+       +(int)result.at<uchar>(result.rows-1,result.cols-1)
+       > 1000)
         cv::threshold(result,result,127,255,CV_THRESH_BINARY_INV);
 }
 

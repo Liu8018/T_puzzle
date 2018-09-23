@@ -5,7 +5,7 @@ CornerPoint::CornerPoint()
 {
 }
 
-void CornerPoint::setPoints(const cv::Point pt0, const cv::Point pt1, const cv::Point pt2)
+void CornerPoint::setPoints(const cv::Point &pt0, const cv::Point &pt1, const cv::Point &pt2)
 {
     m_pt0 = pt0;
     m_pt1 = pt1;

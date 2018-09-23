@@ -21,6 +21,8 @@ int dstPatternFinder::getCorners(std::vector<cv::Point> &cornerPoints)
     //test
     /*cv::Mat findContoursTestImg(m_img.size(), CV_8UC3, cv::Scalar(255,255,255));
     cv::drawContours(findContoursTestImg, contours, -1, cv::Scalar(255));
+    cv::imshow("findContoursTestImg",findContoursTestImg);
+    
     cv::Mat approxTestImg;
     findContoursTestImg.copyTo(approxTestImg);
     int order = 0;
@@ -29,7 +31,6 @@ int dstPatternFinder::getCorners(std::vector<cv::Point> &cornerPoints)
         cv::circle(approxTestImg, c, 5, cv::Scalar(25,230,30));
         cv::putText(approxTestImg, std::to_string(order++), c, 1, 1, cv::Scalar(30,30,250), 1);
     }
-    cv::namedWindow("approxTestImg",0);
     cv::imshow("approxTestImg",approxTestImg);
     cv::waitKey();*/
 

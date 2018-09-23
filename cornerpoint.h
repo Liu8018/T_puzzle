@@ -12,7 +12,7 @@ class CornerPoint
 public:
     CornerPoint();
 
-    void setPoints(const cv::Point pt0, const  cv::Point pt1, const cv::Point pt2);
+    void setPoints(const cv::Point &pt0, const  cv::Point &pt1, const cv::Point &pt2);
 
     int x();
     int y();
