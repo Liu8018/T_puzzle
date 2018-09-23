@@ -113,7 +113,7 @@ bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point> &pts, cv::M
     
     //std::cout<<"ratio="<<ratio<<std::endl;
 
-    if(ratio < 0.96)
+    if(ratio < 0.95)
         return false;
     
     pattern.copyTo(nextPattern);
@@ -177,10 +177,6 @@ bool fit(const cv::Size &imgSize,
                 for(int k=0;k<unitCornerPoints[j].size();k++)//单元块每个角点
                 {
 //std::cout<<"k="<<k<<std::endl;
-                    //若目标角小于此角，则跳过
-                    if(dstCornerPoints[i].getAngle() < unitCornerPoints[j][k].getAngle() - 8)
-                        continue;
-    
                     for(int q=0;q<=1;q++)//角点两个放置方向
                     {
 //std::cout<<"    q="<<q<<std::endl;
@@ -210,7 +206,7 @@ bool fit(const cv::Size &imgSize,
                             pts.push_back(pt);
 
                             //若在目标图案外，则跳过
-                            int radius = 4;
+                            int radius = 5;
                             if(pt.x <= radius || pt.y <= radius || pt.x >= dstPattern.cols - radius || pt.y >= dstPattern.rows - radius)
                                 continue;
                             cv::Mat ROI = dstPattern(cv::Range(pt.y-radius,pt.y+radius),cv::Range(pt.x-radius,pt.x+radius));
