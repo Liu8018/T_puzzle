@@ -10,3 +10,8 @@ picture     successed       runtime
 9           y               15.68
 10          y               0.69
 11          y               8.44
+12          y               23.56               
+13          y               19.38
+14          y               16.59
+15          y               5.14
+16          y               22.02
