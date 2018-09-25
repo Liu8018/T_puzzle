@@ -140,15 +140,6 @@ bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point> &pts, cv::M
                 deletedPartsNum++;
             }
         }
-        
-        /*cv::RotatedRect rect = cv::minAreaRect(contours[i]);
-        cv::Point2f pts[4];
-        rect.points(pts);
-        int width = std::sqrt((pts[0].x-pts[1].x)*(pts[0].x-pts[1].x)+(pts[0].y-pts[1].y)*(pts[0].y-pts[1].y)) + 1;
-        int height = std::sqrt((pts[2].x-pts[1].x)*(pts[2].x-pts[1].x)+(pts[2].y-pts[1].y)*(pts[2].y-pts[1].y)) + 1;
-        //std::cout<<width<<" "<<height<<std::endl;
-        if(width / height > 10 || height / width > 10)
-            continue;*/
     }
     if(contours.size() - deletedPartsNum > 1)
         return false;
