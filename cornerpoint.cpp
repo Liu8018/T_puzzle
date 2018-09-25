@@ -91,8 +91,50 @@ cv::Point getRVec(cv::Point vec1, cv::Point vec2, cv::Point vec3)
     return nextVec;
 }
 
+void getNearestPoint(const std::vector<cv::Point> &contour1,const std::vector<cv::Point> &contour2, cv::Point &pt1, cv::Point &pt2)
+{
+    std::vector<std::vector<cv::Point>> contours;
+    contours.push_back(contour1);
+    
+    std::vector<cv::Point> approx_points1;
+    cv::approxPolyDP(*contours.begin(), approx_points1, 5, 1);
+    
+    contours[0].assign(contour2.begin(),contour2.end());
+    std::vector<cv::Point> approx_points2;
+    cv::approxPolyDP(*contours.begin(), approx_points2, 5, 1);
+    
+    int minDistance = 100000;
+    for(int i=0;i<approx_points1.size();i++)
+    {
+        for(int j=0;j<approx_points2.size();j++)
+        {
+            int x1 = approx_points1[i].x,
+                x2 = approx_points2[j].x,
+                y1 = approx_points1[i].y,
+                y2 = approx_points2[j].y;
+            int distance = std::abs(x1-x2) + std::abs(y1-y2);
+            
+            if(distance < minDistance)
+            {
+                minDistance = distance;
+                
+                pt1 = cv::Point(x1,y1);
+                pt2 = cv::Point(x2,y2);
+            }
+        }
+    }
+}
+
 bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point> &pts, cv::Mat &nextPattern)
 {
+    //test
+    /*std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(pattern, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    if(contours.size() > 1)
+        std::cout<<"!!!"<<std::endl;
+    cv::imshow("pattern",pattern);
+    cv::waitKey(1);*/
+    
     std::vector<std::vector<cv::Point>> contour;
     contour.push_back(pts);
     
@@ -117,7 +159,25 @@ bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point> &pts, cv::M
         return false;
     
     pattern.copyTo(nextPattern);
-    cv::drawContours(nextPattern, contour, 0, 0, -1);
+    cv::drawContours(nextPattern, contour, 0, cv::Scalar(0), -1);
+    
+    //若nextPattern被分成了几部分,则把它们连接起来
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(nextPattern, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+    if(contours.size() > 1)
+    {
+        for(int i = 0; i < contours.size() - 1; i++)
+        {
+            cv::Point pt1, pt2;
+            getNearestPoint(contours[i], contours[i+1], pt1, pt2);
+            
+            cv::line(nextPattern, pt1, pt2, cv::Scalar(255));
+        }
+        //std::cout<<"!!!"<<std::endl;
+    }
+    
+    //cv::imshow("nextPattern",nextPattern);
+    //cv::waitKey();
     
     return true;
 }

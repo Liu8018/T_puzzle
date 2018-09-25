@@ -17,7 +17,7 @@ int main()
     double runTime = (double)cv::getTickCount();
     
     //读入目标图案, 并预处理
-    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/6.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/9.jpg",0);
 
     cv::Mat src_pre;
     preprocess(src,src_pre);
