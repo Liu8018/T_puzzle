@@ -17,7 +17,7 @@ int main()
     double runTime = (double)cv::getTickCount();
     
     //读入目标图案, 并预处理
-    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/10.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/11.jpg",0);
 
     cv::Mat src_pre;
     preprocess(src,src_pre);
@@ -29,43 +29,28 @@ int main()
     cv::Mat units = cv::imread("../T_puzzle/unitPatterns/units.jpg",0);
     myThreshold(units,units);
     
-    //求解
+    //求解(注意此处可以用多线程对不同旋转角度的图案进行处理)
     std::vector<bool> isReversed;
     std::vector<std::vector<cv::Point>> resultUnitPos;
-    bool solved = false;
-    for(int turns=1;turns<10;turns++)
-    {
-        solved = solve_Tpuzzle(src_pre,units,isReversed,resultUnitPos);
-        
-        std::cout<<"solved:"<<solved<<std::endl;
-        
-        if(solved)
-            break;
-        else
-        {
-            cv::Mat tmpImg;
-            myThreshold(src,tmpImg);
-            rotate(tmpImg,tmpImg,10*turns);
-            preprocess(tmpImg,src_pre);
-            
-            //cv::imshow("src_pre",src_pre);
-            //cv::waitKey();
-        }
-    }
-    
+    bool solved = solve_Tpuzzle(src_pre,units,isReversed,resultUnitPos);
+
+    std::cout<<"solved:"<<solved<<std::endl;
     
     //time
     runTime = ((double)cv::getTickCount() - runTime) / cv::getTickFrequency();
     std::cout << runTime << std::endl;
     
-    cv::Mat resultTestImg;
-    src_pre.copyTo(resultTestImg);
-    cv::cvtColor(resultTestImg,resultTestImg,cv::COLOR_GRAY2BGR);
-    cv::drawContours(resultTestImg,resultUnitPos,-1,cv::Scalar(255,0,0));
-    
-    cv::imshow("resultTestImg",resultTestImg);
-    if(cv::waitKey() == 's')
-        cv::imwrite("result.jpg",resultTestImg);
+    if(solved)
+    {
+        cv::Mat resultTestImg;
+        src_pre.copyTo(resultTestImg);
+        cv::cvtColor(resultTestImg,resultTestImg,cv::COLOR_GRAY2BGR);
+        cv::drawContours(resultTestImg,resultUnitPos,-1,cv::Scalar(255,0,0));
+        
+        cv::imshow("resultTestImg",resultTestImg);
+        if(cv::waitKey() == 's')
+            cv::imwrite("result.jpg",resultTestImg);
+    }
 
     return 0;
 }
