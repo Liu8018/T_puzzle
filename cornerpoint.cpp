@@ -54,6 +54,7 @@ void cornerPointTransf(const std::vector<cv::Point> &approxPoints, std::vector<C
     {
         std::cout<<"approxPoints.size()="<<len<<std::endl;
         std::cout<<"cornerPointTransf error!"<<std::endl;
+        cv::waitKey();
         exit(0);
     }
     cornerPoints.resize(len);
@@ -111,18 +112,43 @@ bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point> &pts, cv::M
     pattern.copyTo(nextPattern);
     cv::drawContours(nextPattern, contour, 0, cv::Scalar(0), -1);
     
+    //cv::imshow("nextPattern",nextPattern);
+    
     //删除零碎部分
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(nextPattern, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     int deletedPartsNum=0;
     for(int i=0;i<contours.size();i++)
     {
-        if(cv::contourArea(contours[i]) < 200)
+        double area = cv::contourArea(contours[i]);
+        if(area < 200)
         {
             cv::drawContours(nextPattern,contours,i,cv::Scalar(0),-1);
-            
             deletedPartsNum++;
         }
+        else
+        {
+            cv::RotatedRect rect = cv::minAreaRect(contours[i]);
+            cv::Point2f pts[4];
+            rect.points(pts);
+            int width = std::sqrt((pts[0].x-pts[1].x)*(pts[0].x-pts[1].x)+(pts[0].y-pts[1].y)*(pts[0].y-pts[1].y)) + 1;
+            int height = std::sqrt((pts[2].x-pts[1].x)*(pts[2].x-pts[1].x)+(pts[2].y-pts[1].y)*(pts[2].y-pts[1].y)) + 1;
+            
+            if(width / height > 10 || height / width > 10)
+            {
+                cv::drawContours(nextPattern,contours,i,cv::Scalar(0),-1);
+                deletedPartsNum++;
+            }
+        }
+        
+        /*cv::RotatedRect rect = cv::minAreaRect(contours[i]);
+        cv::Point2f pts[4];
+        rect.points(pts);
+        int width = std::sqrt((pts[0].x-pts[1].x)*(pts[0].x-pts[1].x)+(pts[0].y-pts[1].y)*(pts[0].y-pts[1].y)) + 1;
+        int height = std::sqrt((pts[2].x-pts[1].x)*(pts[2].x-pts[1].x)+(pts[2].y-pts[1].y)*(pts[2].y-pts[1].y)) + 1;
+        //std::cout<<width<<" "<<height<<std::endl;
+        if(width / height > 10 || height / width > 10)
+            continue;*/
     }
     if(contours.size() - deletedPartsNum > 1)
         return false;
@@ -293,7 +319,7 @@ bool fit(const cv::Size &imgSize,
                             //if(cv::waitKey(1) == 27)
                             //    exit(0);
 
-                            if(sum == unitSize && cv::countNonZero(originDst)/cv::countNonZero(nextPattern) > 8 )
+                            if(sum >= unitSize && cv::countNonZero(originDst)/cv::countNonZero(nextPattern) > 8 )
                                 return true;
                             
                             bool finalJudge = fit(dstPattern.size(), originDst, nextDstCornerPoints,unitCornerPoints,nextIsUsed,unitSize,isReversed, resultUnitPos);

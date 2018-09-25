@@ -17,7 +17,7 @@ int main()
     double runTime = (double)cv::getTickCount();
     
     //读入目标图案, 并预处理
-    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/10.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/16.jpg",0);
 
     cv::Mat src_pre;
     preprocess(src,src_pre);
@@ -57,8 +57,12 @@ int main()
 
 void preprocess(const cv::Mat &src, cv::Mat &result)
 {
+    //std::cout<<src.size()<<std::endl;
     int resizeLength = 200;
     cv::resize(src,result,cv::Size(resizeLength,resizeLength*src.rows/src.cols));
+    //std::cout<<result.size()<<std::endl;
+    //cv::imshow("result",result);
+    //cv::waitKey();
 
     myThreshold(result,result);
 }
