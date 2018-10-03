@@ -8,7 +8,8 @@
 int main()
 {
     //读入目标图案
-    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/2.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/10.jpg",0);
+    cv::imshow("src",src);
 
     //读入单元块图像
     cv::Mat units = cv::imread("../T_puzzle/unitPatterns/units.jpg",0);
@@ -30,9 +31,9 @@ int main()
         double runtime = solver.runtime();
         std::cout<<"runtime: "<<runtime<<std::endl;
         
-        cv::Mat resultTestImg;//(3000,3000,CV_8UC3,cv::Scalar(0,0,0));
-        src.copyTo(resultTestImg);
-        cv::cvtColor(resultTestImg,resultTestImg,cv::COLOR_GRAY2BGR);
+        cv::Mat resultTestImg(3000,3000,CV_8UC3,cv::Scalar(0,0,0));
+        //src.copyTo(resultTestImg);
+        //cv::cvtColor(resultTestImg,resultTestImg,cv::COLOR_GRAY2BGR);
         cv::drawContours(resultTestImg,resultUnitPos,-1,cv::Scalar(255,0,0));
         
         cv::imshow("resultTestImg",resultTestImg);

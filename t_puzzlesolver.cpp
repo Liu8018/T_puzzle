@@ -137,7 +137,7 @@ void T_puzzleSolver::getResultPos(std::vector<bool> &isReversed, std::vector<std
         return;
     }
     
-    /*for(int i=0;i<m_resultUnitsPos.size();i++)
+    for(int i=0;i<m_resultUnitsPos.size();i++)
     {
         for(int j=0;j<m_resultUnitsPos[i].size();j++)
         {
@@ -145,7 +145,7 @@ void T_puzzleSolver::getResultPos(std::vector<bool> &isReversed, std::vector<std
             m_resultUnitsPos[i][j].y *= 1/m_ratio;
         }
         
-    }*/
+    }
     resultUnitsPos.assign(m_resultUnitsPos.begin(),m_resultUnitsPos.end());
     isReversed.assign(m_isReversed.begin(),m_isReversed.end());
 }
