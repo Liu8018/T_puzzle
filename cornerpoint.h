@@ -12,17 +12,17 @@ class CornerPoint
 public:
     CornerPoint();
 
-    void setPoints(const cv::Point &pt0, const  cv::Point &pt1, const cv::Point &pt2);
+    void setPoints(const cv::Point2f &pt0, const  cv::Point2f &pt1, const cv::Point2f &pt2);
 
     int x();
     int y();
 
     double getAngle();
 
-    void getVec(std::array<cv::Point, 2> &vecs);
+    void getVec(std::array<cv::Point2f, 2> &vecs);
 private:
 
-    cv::Point m_pt0, m_pt1, m_pt2;
+    cv::Point2f m_pt0, m_pt1, m_pt2;
 
 };
 

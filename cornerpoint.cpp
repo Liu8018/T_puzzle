@@ -5,7 +5,7 @@ CornerPoint::CornerPoint()
 {
 }
 
-void CornerPoint::setPoints(const cv::Point &pt0, const cv::Point &pt1, const cv::Point &pt2)
+void CornerPoint::setPoints(const cv::Point2f &pt0, const cv::Point2f &pt1, const cv::Point2f &pt2)
 {
     m_pt0 = pt0;
     m_pt1 = pt1;
@@ -21,7 +21,7 @@ int CornerPoint::y()
     return m_pt0.y;
 }
 
-void CornerPoint::getVec(std::array<cv::Point, 2> &vecs)
+void CornerPoint::getVec(std::array<cv::Point2f, 2> &vecs)
 {
     vecs[0] = cv::Point(m_pt1.x-m_pt0.x, m_pt1.y-m_pt0.y);
     vecs[1] = cv::Point(m_pt2.x-m_pt0.x, m_pt2.y-m_pt0.y);
@@ -71,7 +71,7 @@ float getNorm(cv::Point vec)
     return sqrt(vec.x*vec.x + vec.y*vec.y);
 }
 
-cv::Point getRVec(cv::Point vec1, cv::Point vec2, cv::Point vec3)
+cv::Point2f getRVec(cv::Point2f vec1, cv::Point2f vec2, cv::Point2f vec3)
 {
     double x1 = vec1.x;
     double y1 = vec1.y;
@@ -92,10 +92,14 @@ cv::Point getRVec(cv::Point vec1, cv::Point vec2, cv::Point vec3)
     return nextVec;
 }
 
-bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point> &pts, cv::Mat &nextPattern)
+bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point2f> &pts, cv::Mat &nextPattern)
 {
-    std::vector<std::vector<cv::Point>> contour;
-    contour.push_back(pts);
+    std::vector<std::vector<cv::Point>> contour(1);
+    for(int i=0;i<pts.size();i++)
+    {
+        cv::Point tmpPt = pts[i];
+        contour[0].push_back(tmpPt);
+    }
     
     cv::Mat tmpImg(pattern.size(),CV_8U,cv::Scalar(1));
     cv::drawContours(tmpImg, contour, 0, 255, -1);
@@ -169,18 +173,21 @@ bool fit(const cv::Size &imgSize,
     cv::drawContours(dstPattern,dstContours,0,cv::Scalar(255),-1);
     
     //test
-//    cv::namedWindow("testImg0",0);
-//    cv::imshow("testImg0",dstPattern);
-//    cv::waitKey();
+    //cv::namedWindow("testImg0",0);
+    //cv::imshow("testImg0",dstPattern);
+    //cv::waitKey();
     
     //遍历
     for(int i=0;i<dstCornerPoints.size();i++)//目标图案每个角点
     {
+//std::cout<<"i="<<i<<std::endl;
         for(int j=0;j<unitSize;j++)//每个单元块
         {
+//std::cout<<"j="<<j<<std::endl;
             //若该单元块已使用过，则跳过
             if(isUsed[j] == true)
                 continue;
+//std::cout<<"test21"<<std::endl;
             for(int rev=0;rev<=1;rev++)//单元块两个放置面
             {
                 bool iR = rev==0 ? false : true;
@@ -201,7 +208,6 @@ bool fit(const cv::Size &imgSize,
                     
                     unitCornerPoints[j].assign(tmpUnitPoints.begin(),tmpUnitPoints.end());
                 }
-
                 for(int k=0;k<unitCornerPoints[j].size();k++)//单元块每个角点
                 {
 //std::cout<<"k="<<k<<std::endl;
@@ -212,20 +218,20 @@ bool fit(const cv::Size &imgSize,
                         {
 //std::cout<<"        r="<<r<<std::endl;
                             //定义容器存储点集
-                            std::vector<cv::Point> pts;
-                            pts.push_back(cv::Point(dstCornerPoints[i].x(),dstCornerPoints[i].y()));
+                            std::vector<cv::Point2f> pts;
+                            pts.push_back(cv::Point2f(dstCornerPoints[i].x(),dstCornerPoints[i].y()));
 
                             //定位下一个点
-                            std::array<cv::Point,2> dstVecs;
+                            std::array<cv::Point2f,2> dstVecs;
                             dstCornerPoints[i].getVec(dstVecs);
-                            std::array<cv::Point,2> unitVecs;
+                            std::array<cv::Point2f,2> unitVecs;
                             unitCornerPoints[j][k].getVec(unitVecs);
 
                             float dstVecNorm = getNorm(dstVecs[q]);
                             float unitVecNorm = getNorm(unitVecs[r]);
                             float ratio = unitVecNorm/dstVecNorm;
 
-                            cv::Point vec,pt;
+                            cv::Point2f vec,pt;
                             vec.x = dstVecs[q].x * ratio;
                             vec.y = dstVecs[q].y * ratio;
                             pt.x = vec.x + dstCornerPoints[i].x();
@@ -247,10 +253,10 @@ bool fit(const cv::Size &imgSize,
                             {
                                 int num = r==1? (k + k1)%unitCornerPoints[j].size() : (unitCornerPoints[j].size() + k - k1)%unitCornerPoints[j].size();
                                 
-                                std::array<cv::Point,2> unitVecs2;
+                                std::array<cv::Point2f,2> unitVecs2;
                                 unitCornerPoints[j][num].getVec(unitVecs2);
                                 
-                                cv::Point nextVec = getRVec(unitVecs2[1-r],-vec,unitVecs2[r]);
+                                cv::Point2f nextVec = getRVec(unitVecs2[1-r],-vec,unitVecs2[r]);
                                 
                                 vec.x = nextVec.x;
                                 vec.y = nextVec.y;
@@ -303,14 +309,14 @@ bool fit(const cv::Size &imgSize,
                                 sum += nextIsUsed[a];
                             
                             //test
-                            //std::cout<<"used="<<sum<<std::endl;
-                            //std::cout<<"originDst/nextPattern:"<<cv::countNonZero(originDst)/cv::countNonZero(nextPattern)<<std::endl;
-                            //cv::namedWindow("nextPattern",0);
-                            //cv::imshow("nextPattern",nextPattern);
-                            //if(cv::waitKey(1) == 27)
-                            //    exit(0);
+                            /*std::cout<<"used="<<sum<<std::endl;
+                            std::cout<<"originDst/nextPattern:"<<cv::countNonZero(originDst)/cv::countNonZero(nextPattern)<<std::endl;
+                            cv::namedWindow("nextPattern",0);
+                            cv::imshow("nextPattern",nextPattern);
+                            if(cv::waitKey() == 27)
+                                exit(0);*/
 
-                            if(sum >= unitSize && cv::countNonZero(originDst)/cv::countNonZero(nextPattern) > 8 )
+                            if(sum >= unitSize && cv::countNonZero(originDst)/cv::countNonZero(nextPattern) > 10 )
                                 return true;
                             
                             bool finalJudge = fit(dstPattern.size(), originDst, nextDstCornerPoints,unitCornerPoints,nextIsUsed,unitSize,isReversed, resultUnitPos);

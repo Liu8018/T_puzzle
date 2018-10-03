@@ -6,7 +6,8 @@ CONFIG -= qt
 SOURCES += \
         main.cpp \
     dstpatternfinder.cpp \
-    cornerpoint.cpp
+    cornerpoint.cpp \
+    t_puzzlesolver.cpp
 
 INCLUDEPATH += usr/include\
                usr/include/opencv \
@@ -18,4 +19,5 @@ LIBS += /usr/lib/libopencv_imgproc.so \
 
 HEADERS += \
     dstpatternfinder.h \
-    cornerpoint.h
+    cornerpoint.h \
+    t_puzzlesolver.h
