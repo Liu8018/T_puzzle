@@ -8,7 +8,7 @@
 int main()
 {
     //读入目标图案
-    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/10.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/1.jpg",0);
     cv::imshow("src",src);
 
     //读入单元块图像
@@ -17,6 +17,8 @@ int main()
     //求解(注意此处可以用多线程对不同旋转角度的图案进行处理)
     T_puzzleSolver solver;
     solver.setImgs(src,units);
+    
+    solver.setDistortionPara(0.999);
 
     bool solved = solver.solve();
     std::cout<<"solved: "<<solved<<std::endl;
