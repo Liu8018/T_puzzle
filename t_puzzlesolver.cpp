@@ -4,7 +4,7 @@ T_puzzleSolver::T_puzzleSolver()
 {
     m_solved = false;
     
-    m_areaRatio = 0.99;
+    m_areaDistortionRatio = 0.99;
 }
 
 void myThreshold(const cv::Mat &src, cv::Mat &result)
@@ -80,15 +80,15 @@ void T_puzzleSolver::resizeImgs(int size)
     int maxSide = m_dstImg.cols > m_dstImg.rows ? m_dstImg.cols:m_dstImg.rows;
     if(maxSide < size)
     {
-        m_ratio = 1;
+        m_dstResizeRatio = 1;
         return;
     }
-    m_ratio = size/(float)maxSide;
+    m_dstResizeRatio = size/(float)maxSide;
     
-    newDstSize = cv::Size(m_dstImg.cols*m_ratio,m_dstImg.rows*m_ratio);
+    newDstSize = cv::Size(m_dstImg.cols*m_dstResizeRatio,m_dstImg.rows*m_dstResizeRatio);
     cv::resize(m_dstImg, m_dstImg, newDstSize);
     
-    cv::Size newUnitsSize = cv::Size(m_unitsImg.cols*m_ratio,m_unitsImg.rows*m_ratio);
+    cv::Size newUnitsSize = cv::Size(m_unitsImg.cols*m_dstResizeRatio,m_unitsImg.rows*m_dstResizeRatio);
     cv::resize(m_unitsImg,m_unitsImg,newUnitsSize);
 }
 
@@ -96,8 +96,8 @@ void T_puzzleSolver::getDstPattern(std::vector<cv::Point> &dstPattern)
 {
     for(int i=0;i<m_dstPattern.size();i++)
     {
-        m_dstPattern[i].x *= 1/m_ratio;
-        m_dstPattern[i].y *= 1/m_ratio;
+        m_dstPattern[i].x *= 1/m_dstResizeRatio;
+        m_dstPattern[i].y *= 1/m_dstResizeRatio;
     }
     
     dstPattern.assign(m_dstPattern.begin(),m_dstPattern.end());
@@ -108,8 +108,8 @@ void T_puzzleSolver::getUnitsPos(std::vector<std::vector<cv::Point>> &unitsPos)
     {
         for(int j=0;j<m_unitsPos[i].size();j++)
         {
-            m_unitsPos[i][j].x *= 1/m_ratio;
-            m_unitsPos[i][j].y *= 1/m_ratio;
+            m_unitsPos[i][j].x *= 1/m_dstResizeRatio;
+            m_unitsPos[i][j].y *= 1/m_dstResizeRatio;
         }
         
     }
@@ -119,7 +119,6 @@ void T_puzzleSolver::getUnitsPos(std::vector<std::vector<cv::Point>> &unitsPos)
 
 bool T_puzzleSolver::solve()
 {
-//std::cout<<"m_unitsPos.size():"<<m_unitsPos.size()<<std::endl;
     std::vector<bool> isUsed(m_unitsPos.size(),false);
     m_resultUnitsPos.resize(m_unitsPos.size());
     m_isReversed.resize(m_unitsPos.size());
@@ -139,15 +138,15 @@ void T_puzzleSolver::getResultPos(std::vector<bool> &isReversed, std::vector<std
         return;
     }
     
-    /*for(int i=0;i<m_resultUnitsPos.size();i++)
+    for(int i=0;i<m_resultUnitsPos.size();i++)
     {
         for(int j=0;j<m_resultUnitsPos[i].size();j++)
         {
-            m_resultUnitsPos[i][j].x *= 1/m_ratio;
-            m_resultUnitsPos[i][j].y *= 1/m_ratio;
+            m_resultUnitsPos[i][j].x *= 1/m_dstResizeRatio;
+            m_resultUnitsPos[i][j].y *= 1/m_dstResizeRatio;
         }
         
-    }*/
+    }
     resultUnitsPos.assign(m_resultUnitsPos.begin(),m_resultUnitsPos.end());
     isReversed.assign(m_isReversed.begin(),m_isReversed.end());
 }
@@ -204,7 +203,7 @@ cv::Point2f T_puzzleSolver::getRVec(cv::Point2f vec1, cv::Point2f vec2, cv::Poin
 
 void T_puzzleSolver::setDistortionPara(float areaRatio)
 {
-    m_areaRatio = areaRatio;
+    m_areaDistortionRatio = areaRatio;
 }
 
 bool T_puzzleSolver::cutPattern(const cv::Mat &pattern, const std::vector<cv::Point2f> &pts, cv::Mat &nextPattern)
@@ -225,7 +224,7 @@ bool T_puzzleSolver::cutPattern(const cv::Mat &pattern, const std::vector<cv::Po
     
     //std::cout<<"ratio="<<ratio<<std::endl;
     
-    if(ratio < m_areaRatio)
+    if(ratio < m_areaDistortionRatio)
         return false;
     
     pattern.copyTo(nextPattern);

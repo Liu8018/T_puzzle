@@ -26,10 +26,10 @@ private:
     cv::Mat m_dstImg;
     cv::Mat m_unitsImg;
     
-    float m_areaRatio;
+    float m_areaDistortionRatio;
     
     void resizeImgs(int size);
-    float m_ratio;
+    float m_dstResizeRatio;
     
     std::vector<cv::Point> m_dstPattern;
     std::vector<std::vector<cv::Point>> m_unitsPos;
