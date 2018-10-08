@@ -51,9 +51,9 @@ void T_puzzleSolver::setImgs(const cv::Mat &dstImg, const cv::Mat &unitsImg)
     //提取单元块并转化为CornerPoint类
     cv::findContours(m_unitsImg, m_unitsPos, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     
-    int unitSize = m_unitsPos.size();
+    m_unitSize = m_unitsPos.size();
     m_unitCornerPoints.clear();
-    for (int i=0; i<unitSize; i++)
+    for (int i=0; i<m_unitSize; i++)
     {
         cv::Mat unit(m_unitsImg.size(),CV_8U,cv::Scalar(0));
         cv::drawContours(unit, m_unitsPos, i, cv::Scalar(255), -1);
@@ -117,15 +117,39 @@ void T_puzzleSolver::getUnitsPos(std::vector<std::vector<cv::Point>> &unitsPos)
     unitsPos.assign(m_unitsPos.begin(),m_unitsPos.end());
 }
 
+cv::Point T_puzzleSolver::getCenter(const std::vector<cv::Point> &pts)
+{
+    cv::RotatedRect rRect = cv::minAreaRect(pts);
+    return rRect.center;
+}
+
+int T_puzzleSolver::getUnitSize()
+{
+    return m_unitSize;
+}
+
 bool T_puzzleSolver::solve()
 {
     std::vector<bool> isUsed(m_unitsPos.size(),false);
     m_resultUnitsPos.resize(m_unitsPos.size());
     m_isReversed.resize(m_unitsPos.size());
+    for(int i=0;i<m_unitSize;i++)
+        m_isReversed[i] = false;
     
     m_runtime = (double)cv::getTickCount();
     m_solved = fit(m_dstImg.size(), m_dstCornerPoints, m_unitCornerPoints, isUsed, m_unitsPos.size(), m_isReversed, m_resultUnitsPos);
     m_runtime = ((double)cv::getTickCount() - m_runtime) / cv::getTickFrequency();
+    
+    if(m_solved)
+        for(int i=0;i<m_resultUnitsPos.size();i++)
+        {
+            for(int j=0;j<m_resultUnitsPos[i].size();j++)
+            {
+                m_resultUnitsPos[i][j].x *= 1/m_dstResizeRatio;
+                m_resultUnitsPos[i][j].y *= 1/m_dstResizeRatio;
+            }
+            
+        }
     
     return m_solved;
 }
@@ -138,17 +162,171 @@ void T_puzzleSolver::getResultPos(std::vector<bool> &isReversed, std::vector<std
         return;
     }
     
-    for(int i=0;i<m_resultUnitsPos.size();i++)
+    resultUnitsPos.assign(m_resultUnitsPos.begin(),m_resultUnitsPos.end());
+    isReversed.assign(m_isReversed.begin(),m_isReversed.end());
+}
+
+void vecsTransf(const std::vector<cv::Point> &pts, cv::Point center, std::vector<cv::Vec2i> &vecs)
+{
+    vecs.clear();
+    for(int i=0;i<pts.size();i++)
     {
-        for(int j=0;j<m_resultUnitsPos[i].size();j++)
+        cv::Vec2i vec;
+        vec[0] = pts[i].x - center.x;
+        vec[1] = pts[i].y - center.y;
+        
+        vecs.push_back(vec);
+    }
+}
+
+void T_puzzleSolver::rotatePts(const std::vector<cv::Point> &pts, float angle, std::vector<cv::Point> &pts2)
+{
+    cv::Point cPt = getCenter(pts);
+    
+    std::vector<cv::Vec2i> vecs;
+    vecsTransf(pts,cPt,vecs);
+    
+    float cos_theta = std::cos(angle);
+    float sin_theta = std::sin(angle);
+    
+    pts2.clear();
+    for(int i=0;i<vecs.size();i++)
+    {
+        cv::Point pt;
+        pt.x = cPt.x +  vecs[i][0]*cos_theta + vecs[i][1]*sin_theta;
+        pt.y = cPt.y + -vecs[i][0]*sin_theta + vecs[i][1]*cos_theta;
+        
+        pts2.push_back(pt);
+    }
+}
+
+float T_puzzleSolver::getRotateAngle(const std::vector<cv::Point> &pts, const std::vector<cv::Point> &pts2)
+{
+    //找唯一角度的角
+    /*std::vector<float> angleArray;
+    std::vector<bool> repetitive(pts.size(),false);
+    
+    for(int i=0;i<pts.size();i++)
+    {
+        int pre = (i - 1 + pts.size())%pts.size();
+        int nex = (i + 1)%pts.size();
+        
+        CornerPoint tmpCornerPt;
+        tmpCornerPt.setPoints(pts[i],pts[pre],pts[nex]);
+        angleArray.push_back(tmpCornerPt.getAngle());
+        
+        for(int j=0;j<angleArray.size();j++)
         {
-            m_resultUnitsPos[i][j].x *= 1/m_dstResizeRatio;
-            m_resultUnitsPos[i][j].y *= 1/m_dstResizeRatio;
+            if(j == i)
+                continue;
+            
+            if(std::abs(angleArray[i] - angleArray[j]) < 0.01)
+            {
+                repetitive[i] = true;
+                repetitive[j] = true;
+            }
+        }
+    }*/
+    
+    //找唯一长度的线段
+    
+    //若无唯一角度的角或唯一长度的线段，则遍历旋转角度找最佳值
+    float minNotCoverRatio = 10;
+    float correctTheta;
+    
+    cv::Mat tmpBgImg(3000,3000,CV_8U,cv::Scalar(0));
+    std::vector<std::vector<cv::Point>> tmpPts;
+    tmpPts.push_back(pts2);
+    cv::drawContours(tmpBgImg,tmpPts,0,cv::Scalar(255),-1);
+            
+    //粗搜索
+    for(float theta=0;theta<2*CV_PI;theta+=0.2)
+    {
+        std::vector<std::vector<cv::Point>> tmpUnitPos(1);
+        rotatePts(pts,theta,tmpUnitPos[0]);
+
+        cv::Mat tmpBgImg2(3000,3000,CV_8U,cv::Scalar(0));
+        cv::drawContours(tmpBgImg2,tmpUnitPos,0,cv::Scalar(255),-1);
+        
+        cv::Mat notCoverImg = tmpBgImg != tmpBgImg2;
+        float notCoverRatio = cv::countNonZero(notCoverImg)/(float)cv::countNonZero(tmpBgImg);
+        
+        if(notCoverRatio < minNotCoverRatio)
+        {
+            minNotCoverRatio = notCoverRatio;
+            correctTheta = theta;
         }
         
     }
-    resultUnitsPos.assign(m_resultUnitsPos.begin(),m_resultUnitsPos.end());
-    isReversed.assign(m_isReversed.begin(),m_isReversed.end());
+    
+    //细搜索
+    for(float theta = correctTheta - 0.2;theta<correctTheta + 0.2;theta+=0.02)
+    {
+        std::vector<std::vector<cv::Point>> tmpUnitPos(1);
+        rotatePts(pts,theta,tmpUnitPos[0]);
+
+        cv::Mat tmpBgImg2(3000,3000,CV_8U,cv::Scalar(0));
+        cv::drawContours(tmpBgImg2,tmpUnitPos,0,cv::Scalar(255),-1);
+        
+        cv::Mat notCoverImg = tmpBgImg != tmpBgImg2;
+        float notCoverRatio = cv::countNonZero(notCoverImg)/(float)cv::countNonZero(tmpBgImg);
+        
+        if(notCoverRatio < minNotCoverRatio)
+        {
+            minNotCoverRatio = notCoverRatio;
+            correctTheta = theta;
+        }
+        
+        //test
+        /*cv::Mat testImg;
+        cv::resize(tmpBgImg,testImg,cv::Size(600,600));
+        cv::imshow("tmpBgimg",testImg);
+        cv::resize(tmpBgImg2,testImg,cv::Size(600,600));
+        cv::imshow("tmpBgimg2",testImg);
+        if(cv::waitKey() == 'q')
+            break;
+        std::cout<<notCoverRatio<<std::endl;
+        std::cout<<"theta:"<<theta<<std::endl;*/
+        
+    }
+    
+    return correctTheta;
+}
+
+void T_puzzleSolver::getTranslationAndRotation(std::vector<cv::Vec2i> &translationVectors, std::vector<float> &angles)
+{
+    //计算平移向量
+    translationVectors.clear();
+    
+    for(int i=0;i<m_unitSize;i++)
+    {
+        cv::Point cPt1 = getCenter(m_unitsPos[i]);
+        cv::Point cPt2 = getCenter(m_resultUnitsPos[i]);
+        
+        translationVectors.push_back(cv::Vec2i(cPt2.x-cPt1.x, cPt2.y-cPt1.y));
+    }
+
+    //计算旋转角度
+    std::vector<std::vector<cv::Point>> unitsPos2;
+    unitsPos2.assign(m_unitsPos.begin(),m_unitsPos.end());
+    
+    for(int i=0;i<unitsPos2.size();i++)
+        for(int j=0;j<unitsPos2[i].size();j++)
+        {
+            unitsPos2[i][j].x += translationVectors[i][0];
+            unitsPos2[i][j].y += translationVectors[i][1];
+        }
+    
+    for(int i=0;i<unitsPos2.size();i++)
+    {
+        float angle = getRotateAngle(unitsPos2[i],m_resultUnitsPos[i]);
+        angles.push_back(angle);
+    }
+}
+
+float T_puzzleSolver::rad2angle(float rad)
+{
+    return rad*180/(float)CV_PI;
 }
 
 double T_puzzleSolver::runtime()
@@ -279,7 +457,7 @@ bool T_puzzleSolver::fit(const cv::Size &imgSize,
     //绘制目标图案
     std::vector<cv::Point> dstContour;
     for(unsigned int i=0;i<dstCornerPoints.size();i++)
-        dstContour.push_back(cv::Point(dstCornerPoints[i].x(), dstCornerPoints[i].y() ));
+        dstContour.push_back(cv::Point(dstCornerPoints[i].x(), dstCornerPoints[i].y()));
     std::vector<std::vector<cv::Point>> dstContours;
     dstContours.push_back(dstContour);
     cv::Mat dstPattern(imgSize,CV_8U,cv::Scalar(0));
@@ -320,6 +498,7 @@ bool T_puzzleSolver::fit(const cv::Size &imgSize,
                     
                     unitCornerPoints[j].assign(tmpUnitPoints.begin(),tmpUnitPoints.end());
                 }
+                
                 for(int k=0;k<unitCornerPoints[j].size();k++)//单元块每个角点
                 {
 //std::cout<<"k="<<k<<std::endl;
