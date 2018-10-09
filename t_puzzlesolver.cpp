@@ -481,6 +481,8 @@ bool T_puzzleSolver::fit(const cv::Size &imgSize,
             for(int rev=0;rev<=1;rev++)//单元块两个放置面
             {
                 bool iR = rev==0 ? false : true;
+//std::cout<<"iR="<<iR<<std::endl;
+//std::cout<<"isReversed["<<j<<"]="<<isReversed[j]<<std::endl;
                 if(iR != isReversed[j])
                 {
                     isReversed[j] = iR;
@@ -498,6 +500,7 @@ bool T_puzzleSolver::fit(const cv::Size &imgSize,
                     
                     unitCornerPoints[j].assign(tmpUnitPoints.begin(),tmpUnitPoints.end());
                 }
+//std::cout<<"--isReversed["<<j<<"]="<<isReversed[j]<<std::endl;
                 
                 for(int k=0;k<unitCornerPoints[j].size();k++)//单元块每个角点
                 {
