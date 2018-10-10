@@ -5,14 +5,14 @@ dstPatternFinder::dstPatternFinder(const cv::Mat &binaryImg)
     binaryImg.copyTo(m_img);
 }
 
-int dstPatternFinder::getCorners(std::vector<cv::Point> &cornerPoints)
+bool dstPatternFinder::getCorners(std::vector<cv::Point> &cornerPoints)
 {
     //提取轮廓
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(m_img, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
     
     if(contours.size() != 1)
-        return -1;
+        return false;
 
     //多边形拟合
     std::vector<cv::Point> approx_points;
@@ -36,4 +36,6 @@ int dstPatternFinder::getCorners(std::vector<cv::Point> &cornerPoints)
 
     //返回
     cornerPoints.assign(approx_points.begin(),approx_points.end());
+    
+    return true;
 }

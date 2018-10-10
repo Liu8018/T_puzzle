@@ -134,14 +134,15 @@ bool T_puzzleSolver::solve()
     m_resultUnitsPos.resize(m_unitsPos.size());
     m_isReversed.resize(m_unitsPos.size());
     for(int i=0;i<m_unitSize;i++)
-        m_isReversed[i] = false;
+        m_isReversed[i] = true;
     
     m_runtime = (double)cv::getTickCount();
     m_solved = fit(m_dstImg.size(), m_dstCornerPoints, m_unitCornerPoints, isUsed, m_unitsPos.size(), m_isReversed, m_resultUnitsPos);
     m_runtime = ((double)cv::getTickCount() - m_runtime) / cv::getTickFrequency();
     
     if(m_solved)
-        for(int i=0;i<m_resultUnitsPos.size();i++)
+    {
+        for(int i=0;i<m_unitSize;i++)
         {
             for(int j=0;j<m_resultUnitsPos[i].size();j++)
             {
@@ -149,8 +150,10 @@ bool T_puzzleSolver::solve()
                 m_resultUnitsPos[i][j].y *= 1/m_dstResizeRatio;
             }
             
+            m_isReversed[i] = !m_isReversed[i];
         }
-    
+    }
+        
     return m_solved;
 }
 
@@ -478,11 +481,22 @@ bool T_puzzleSolver::fit(const cv::Size &imgSize,
             //若该单元块已使用过，则跳过
             if(isUsed[j] == true)
                 continue;
+            
             for(int rev=0;rev<=1;rev++)//单元块两个放置面
             {
                 bool iR = rev==0 ? false : true;
-//std::cout<<"iR="<<iR<<std::endl;
-//std::cout<<"isReversed["<<j<<"]="<<isReversed[j]<<std::endl;
+                
+                //test
+                /*cv::Mat testImg0(dstPattern.size(),CV_8U,cv::Scalar(0));
+                std::vector<std::vector<cv::Point>> tmpPoints0(1);
+                for(int nn=0;nn<unitCornerPoints[j].size();nn++)
+                {
+                    tmpPoints0[0].push_back(cv::Point(unitCornerPoints[j][nn].x(),unitCornerPoints[j][nn].y()));
+                    tmpPoints0[0][nn].x = dstPattern.cols - tmpPoints0[0][nn].x;
+                }
+                cv::drawContours(testImg0,tmpPoints0,0,cv::Scalar(255));
+                cv::putText(testImg0,std::to_string(isReversed[j]),getCenter(tmpPoints0[0]),1,1,cv::Scalar(255));*/
+
                 if(iR != isReversed[j])
                 {
                     isReversed[j] = iR;
@@ -500,7 +514,21 @@ bool T_puzzleSolver::fit(const cv::Size &imgSize,
                     
                     unitCornerPoints[j].assign(tmpUnitPoints.begin(),tmpUnitPoints.end());
                 }
-//std::cout<<"--isReversed["<<j<<"]="<<isReversed[j]<<std::endl;
+
+                //test
+                /*cv::Mat testImg1(dstPattern.size(),CV_8U,cv::Scalar(0));
+                std::vector<std::vector<cv::Point>> tmpPoints1(1);
+                for(int nn=0;nn<unitCornerPoints[j].size();nn++)
+                {
+                    tmpPoints1[0].push_back(cv::Point(unitCornerPoints[j][nn].x(),unitCornerPoints[j][nn].y()));
+                    tmpPoints1[0][nn].x = dstPattern.cols - tmpPoints1[0][nn].x;
+                }
+                cv::drawContours(testImg1,tmpPoints1,0,cv::Scalar(255));
+                cv::putText(testImg1,std::to_string(isReversed[j]),getCenter(tmpPoints1[0]),1,1,cv::Scalar(255));
+                
+                cv::imshow("testImg0",testImg0);
+                cv::imshow("testImg1",testImg1);
+                cv::waitKey();*/
                 
                 for(int k=0;k<unitCornerPoints[j].size();k++)//单元块每个角点
                 {
@@ -581,41 +609,46 @@ bool T_puzzleSolver::fit(const cv::Size &imgSize,
                             bool outOfRangeJudge = cutPattern(dstPattern,pts,nextPattern);
                             if(outOfRangeJudge == false)
                                 continue;
-
-                            resultUnitPos[j].assign(pts.begin(),pts.end());
                             
                             dstPatternFinder finder(nextPattern);
                             std::vector<cv::Point> nextDstPoints;
-                            int judge = finder.getCorners(nextDstPoints);
-                            if(judge == -1)
-                            {
-                                if(nextDstPoints.empty())
-                                    return true;
-                                
+                            bool judge = finder.getCorners(nextDstPoints);
+                            if(judge == false && !nextDstPoints.empty())
                                 continue;
-                            }
                             
+                            //为下一轮递归的isUsed赋值
                             std::vector<bool> nextIsUsed;
                             nextIsUsed.assign(isUsed.begin(),isUsed.end());
                             nextIsUsed[j] = true;
                             
-                            std::vector<CornerPoint> nextDstCornerPoints;
-                            cornerPointTransf(nextDstPoints, nextDstCornerPoints);
+                            //为单元块返回位置信息赋值
+                            resultUnitPos[j].assign(pts.begin(),pts.end());
                             
-                            //若单元块被全部使用，则终止递归
+                            //计算已放置的单元块数目
                             int sum=0;
                             for(int a=0;a<unitSize;a++)
                                 sum += nextIsUsed[a];
-                            
                             //test
                             /*std::cout<<"used="<<sum<<std::endl;
-                            cv::namedWindow("nextPattern",0);
+                            cv::cvtColor(nextPattern,nextPattern,cv::COLOR_GRAY2BGR);
+                            for(int t1=0;t1<m_unitSize;t1++)
+                            {
+                                if(nextIsUsed[t1] == true)
+                                {
+                                    cv::drawContours(nextPattern,resultUnitPos,t1,cv::Scalar(255,0,0));
+                                    cv::putText(nextPattern,std::to_string(isReversed[t1]),getCenter(resultUnitPos[t1]),1,1,cv::Scalar(0,200,200));
+                                }
+                            }
                             cv::imshow("nextPattern",nextPattern);
                             if(cv::waitKey(1) == 27)
                                 exit(0);*/
                             
-                            if(sum >= unitSize)
+                            //若单元块放置完毕，则终止递归
+                            if(sum == unitSize)
                                 return true;
+                            
+                            std::vector<CornerPoint> nextDstCornerPoints;
+                            cornerPointTransf(nextDstPoints, nextDstCornerPoints);
                             
                             bool finalJudge = fit(dstPattern.size(), nextDstCornerPoints,unitCornerPoints,nextIsUsed,unitSize,isReversed, resultUnitPos);
                             if(finalJudge == true)

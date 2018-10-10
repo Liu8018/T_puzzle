@@ -11,7 +11,7 @@ class dstPatternFinder
 public:
     dstPatternFinder(const cv::Mat &binaryImg);
 
-    int getCorners(std::vector<cv::Point> &cornerPoints);
+    bool getCorners(std::vector<cv::Point> &cornerPoints);
 
 private:
     cv::Mat m_img;
