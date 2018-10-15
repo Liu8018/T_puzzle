@@ -19,7 +19,7 @@ int main()
     T_puzzleSolver solver;
     solver.setImgs(src,units);
     
-    solver.setDistortionPara(0.999);
+    solver.setDistortionPara(0.999);//设定允许变形的程度
 
     bool solved = solver.solve();
     std::cout<<"solved: "<<solved<<std::endl;
@@ -39,15 +39,12 @@ int main()
         std::vector<std::vector<cv::Point>> resultUnitsPos;
         solver.getResultPos(isReversed,resultUnitsPos);
         
-        //for(int i=0;i<isReversed.size();i++)
-        //    std::cout<<isReversed[i]<<std::endl;
-        
-        //计算每个单元块的平移矢量和旋转角度,注意只有当
+        //计算每个单元块的平移矢量和旋转角度,注意只有当不需要翻转时结果才有意义
         std::vector<cv::Vec2i> translationVectors;
         std::vector<float> angles;
         solver.getTranslationAndRotation(translationVectors,angles);
         
-        //以红色显示原来的位置，蓝色显示新的位置,绿色显示平移矢量,紫色显示逆时针旋转角度
+        //以红色显示原来的位置，蓝色显示新的位置,绿色显示平移矢量,紫色显示顺时针旋转角度
         cv::Mat resultTestImg(3000,3000,CV_8UC3,cv::Scalar(0,0,0));
         cv::drawContours(resultTestImg,unitsPos,-1,cv::Scalar(0,0,255),3);
         cv::drawContours(resultTestImg,resultUnitsPos,-1,cv::Scalar(255,0,0), 3);

@@ -19,6 +19,7 @@ public:
     void getUnitsPos(std::vector<std::vector<cv::Point>> &unitsPos);
     
     cv::Point getCenter(const std::vector<cv::Point> &pts);
+    float getRotateAngle(const std::vector<cv::Point> &pts0, const std::vector<cv::Point> &pts1);
     
     bool solve();
     
@@ -51,16 +52,12 @@ private:
     std::vector<std::vector<CornerPoint>> m_unitCornerPoints;
     
     bool m_solved;
-    
     double m_runtime;
-    
-    void rotatePts(const std::vector<cv::Point> &pts, float angle, std::vector<cv::Point> &pts2);
-    float getRotateAngle(const std::vector<cv::Point> &pts, const std::vector<cv::Point> &pts2);
     
     //求解过程中用到的变量和函数
     void cornerPointTransf(const std::vector<cv::Point> &approxPoints, std::vector<CornerPoint> &cornerPoints);
     float getNorm(cv::Point vec);
-    cv::Point2f getRVec(cv::Point2f vec1, cv::Point2f vec2, cv::Point2f vec3);
+    void getRVec(cv::Point2f vecA1, cv::Point2f vecA2, cv::Point2f vecB1, cv::Point2f &vecB2);
     bool cutPattern(const cv::Mat &pattern, const std::vector<cv::Point2f> &pts, cv::Mat &nextPattern);
     bool fit(const cv::Size &imgSize,
              std::vector<CornerPoint> dstCornerPoints,
