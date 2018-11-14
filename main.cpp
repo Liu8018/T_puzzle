@@ -8,11 +8,15 @@
 int main()
 {
     //读入目标图案
-    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/2.jpg",0);
+    cv::Mat src = cv::imread("../T_puzzle/dstPatterns/3.jpg",0);
+    cv::namedWindow("src",0);
+    cv::resizeWindow("src",600,600);
     cv::imshow("src",src);
 
     //读入单元块图像
     cv::Mat units = cv::imread("../T_puzzle/unitPatterns/units.jpg",0);
+    cv::namedWindow("units",0);
+    cv::resizeWindow("units",600,600);
     cv::imshow("units",units);
 
     //求解(注意此处可以用多线程对不同旋转角度的图案进行处理)
@@ -61,9 +65,8 @@ int main()
             cv::putText(resultTestImg,std::to_string(isReversed[i]),cPt1,1,6,cv::Scalar(0,250,250),6);
         }
         
-        cv::resize(units,units,cv::Size(units.cols/5,units.rows/5));
-        cv::imshow("units",units);
-        cv::resize(resultTestImg,resultTestImg,cv::Size(600,600));
+        cv::namedWindow("resultTestImg",0);
+        cv::resizeWindow("resultTestImg",600,600);
         cv::imshow("resultTestImg",resultTestImg);
         if(cv::waitKey() == 's')
             cv::imwrite("result.jpg",resultTestImg);

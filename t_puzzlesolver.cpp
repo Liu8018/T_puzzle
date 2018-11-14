@@ -434,11 +434,9 @@ bool T_puzzleSolver::fit(const cv::Size &imgSize,
             
             for(int rev=0;rev<=1;rev++)//单元块两个放置面
             {
-                bool iR = rev==0 ? false : true;
-                
-                if(iR != isReversed[j])
+                if(rev != isReversed[j])
                 {
-                    isReversed[j] = iR;
+                    isReversed[j] = rev;
                     
                     std::vector<cv::Point> tmpPoints;
                     for(int nn=0;nn<unitCornerPoints[j].size();nn++)
